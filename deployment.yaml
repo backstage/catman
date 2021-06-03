@@ -1,0 +1,128 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catman
+  labels:
+    app: catman
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: catman
+  template:
+    metadata:
+      labels:
+        app: catman
+    spec:
+      containers:
+      - name: catman
+        image: gcr.io/...
+        ports:
+        - containerPort: 9191
+        resources:
+          requests:
+            cpu: 1.0
+            memory: 1G
+          limits:
+            cpu: 1.0
+            memory: 1G
+        args:
+        - -baseurl=http://catman
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: catman
+spec:
+  selector:
+    app: catman
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 9191
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  labels:
+    app: postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+      - name: postgres
+        image: postgres
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_PASSWORD
+          value: somepassword
+        resources:
+          requests:
+            cpu: 4.0
+            memory: 8G
+          limits:
+            cpu: 4.0
+            memory: 8G
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+spec:
+  selector:
+    app: postgres
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backstage
+  labels:
+    app: backstage
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backstage
+  template:
+    metadata:
+      labels:
+        app: backstage
+    spec:
+      containers:
+      - name: backstage
+        image: gcr.io/...
+        ports:
+        - containerPort: 7000
+        resources:
+          requests:
+            cpu: 4.0
+            memory: 8G
+          limits:
+            cpu: 4.0
+            memory: 8G
+        env:
+        - name: POSTGRES_HOST
+          value: postgres
+        - name: POSTGRES_PORT
+          value: "5432"
+        - name: POSTGRES_USER
+          value: postgres
+        - name: POSTGRES_PASSWORD
+          value: somepassword
+        - name: EXPERIMENTAL_CATALOG
+          value: "1"
